@@ -228,22 +228,22 @@ export class DatabaseStorage implements IStorage {
     pendingOrders: number;
     revenue: string;
   }> {
-    const [productCount] = await db.select({ count: sql<number>`count(*)` }).from(products);
-    const [userCount] = await db.select({ count: sql<number>`count(*)` }).from(users);
-    const [pendingOrderCount] = await db
+    const productCount = await db.select({ count: sql<number>`count(*)` }).from(products);
+    const userCount = await db.select({ count: sql<number>`count(*)` }).from(users);
+    const pendingOrderCount = await db
       .select({ count: sql<number>`count(*)` })
       .from(orders)
       .where(eq(orders.status, "pending"));
-    const [revenueResult] = await db
+    const revenueResult = await db
       .select({ total: sql<string>`COALESCE(sum(total), 0)` })
       .from(orders)
       .where(eq(orders.status, "delivered"));
 
     return {
-      totalProducts: productCount.count,
-      totalUsers: userCount.count,
-      pendingOrders: pendingOrderCount.count,
-      revenue: `KSh ${Number(revenueResult.total).toLocaleString()}`,
+      totalProducts: productCount[0]?.count || 0,
+      totalUsers: userCount[0]?.count || 0,
+      pendingOrders: pendingOrderCount[0]?.count || 0,
+      revenue: `KSh ${Number(revenueResult[0]?.total || 0).toLocaleString()}`,
     };
   }
 }
