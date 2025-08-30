@@ -16,7 +16,7 @@ import {
   type InsertOrderItem,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, like, desc, asc, and, or, ilike } from "drizzle-orm";
+import { eq, like, desc, asc, and, or, ilike, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (mandatory for Replit Auth)
@@ -119,20 +119,22 @@ export class DatabaseStorage implements IStorage {
     limit?: number;
     offset?: number;
   }): Promise<Product[]> {
-    let query = db.select().from(products).where(eq(products.status, "active"));
+    const conditions = [eq(products.status, "active")];
 
     if (filters?.category) {
-      query = query.where(eq(products.categoryId, filters.category));
+      conditions.push(eq(products.categoryId, filters.category));
     }
 
     if (filters?.search) {
-      query = query.where(
+      conditions.push(
         or(
           ilike(products.name, `%${filters.search}%`),
           ilike(products.description, `%${filters.search}%`)
         )
       );
     }
+
+    let query = db.select().from(products).where(and(...conditions));
 
     query = query.orderBy(desc(products.createdAt));
 
