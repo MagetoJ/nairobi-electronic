@@ -4,6 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/apiRequest";
+import { useQueryClient } from "@tanstack/react-query";
 import { UserPlus, Mail, Lock, Eye, EyeOff, User } from "lucide-react";
 
 interface RegisterFormProps {
@@ -21,6 +23,7 @@ export default function RegisterForm({ isOpen, onClose }: RegisterFormProps) {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,21 +58,36 @@ export default function RegisterForm({ isOpen, onClose }: RegisterFormProps) {
     setIsLoading(true);
     
     try {
-      // For now, redirect to OAuth registration as fallback
-      // In a real app, you'd implement password-based registration here
+      const response = await apiRequest('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          password: password.trim(),
+        }),
+      });
+
       toast({
-        title: "Redirecting",
-        description: "Taking you to secure registration...",
+        title: "Success",
+        description: "Account created successfully! You can now sign in.",
       });
       
-      setTimeout(() => {
-        window.location.href = "/api/login";
-      }, 1000);
+      // Close modal and reset form
+      onClose();
+      setFirstName('');
+      setLastName('');
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
       
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Registration failed. Please try again.",
+        description: error.message || "Registration failed. Please try again.",
         variant: "destructive",
       });
     } finally {

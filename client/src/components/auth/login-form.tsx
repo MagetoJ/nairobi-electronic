@@ -4,6 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/apiRequest";
+import { useQueryClient } from "@tanstack/react-query";
 import { User, Mail, Lock, Eye, EyeOff } from "lucide-react";
 
 interface LoginFormProps {
@@ -17,6 +19,7 @@ export default function LoginForm({ isOpen, onClose }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,21 +36,37 @@ export default function LoginForm({ isOpen, onClose }: LoginFormProps) {
     setIsLoading(true);
     
     try {
-      // For now, redirect to the OAuth login as fallback
-      // In a real app, you'd implement password-based authentication here
+      const response = await apiRequest('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          password: password.trim(),
+        }),
+      });
+
       toast({
-        title: "Redirecting",
-        description: "Taking you to secure login...",
+        title: "Success",
+        description: "Login successful! Welcome back.",
       });
       
-      setTimeout(() => {
-        window.location.href = "/api/login";
-      }, 1000);
+      // Refresh user data
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       
-    } catch (error) {
+      // Close modal and reset form
+      onClose();
+      setEmail('');
+      setPassword('');
+      
+      // Refresh page to update authentication state
+      window.location.reload();
+      
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Login failed. Please try again.",
+        description: error.message || "Login failed. Please check your credentials.",
         variant: "destructive",
       });
     } finally {

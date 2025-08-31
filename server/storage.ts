@@ -21,6 +21,9 @@ import { eq, like, desc, asc, and, or, ilike, sql } from "drizzle-orm";
 export interface IStorage {
   // User operations (mandatory for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  createUserWithPassword(user: { email: string; firstName: string; lastName: string; password: string }): Promise<User>;
+  validateUserPassword(email: string, password: string): Promise<User | null>;
   upsertUser(user: UpsertUser): Promise<User>;
   createUser(user: { email: string; firstName: string; lastName?: string; role?: string }): Promise<User>;
   deleteUser(id: string): Promise<void>;
@@ -101,6 +104,36 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return user;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+  
+  async createUserWithPassword(userData: { email: string; firstName: string; lastName: string; password: string }): Promise<User> {
+    const bcrypt = await import('bcryptjs');
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
+    
+    const [user] = await db
+      .insert(users)
+      .values({
+        ...userData,
+        password: hashedPassword,
+        authProvider: 'local',
+        isEmailVerified: false,
+      })
+      .returning();
+    return user;
+  }
+  
+  async validateUserPassword(email: string, password: string): Promise<User | null> {
+    const user = await this.getUserByEmail(email);
+    if (!user || !user.password) return null;
+    
+    const bcrypt = await import('bcryptjs');
+    const isValid = await bcrypt.compare(password, user.password);
+    return isValid ? user : null;
   }
 
   async deleteUser(id: string): Promise<void> {

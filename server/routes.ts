@@ -5,6 +5,7 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertProductSchema, insertCategorySchema, insertOrderSchema, insertOrderItemSchema } from "@shared/schema";
 import { generateSitemap } from "./sitemap";
 import { sendWelcomeEmail, sendOrderDispatchEmail } from "./emailService";
+import * as bcrypt from 'bcryptjs';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -19,6 +20,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Password-based authentication routes
+  app.post('/api/auth/register', async (req, res) => {
+    try {
+      const { email, firstName, lastName, password } = req.body;
+
+      if (!email || !firstName || !password) {
+        return res.status(400).json({ message: "Email, first name, and password are required" });
+      }
+
+      if (password.length < 6) {
+        return res.status(400).json({ message: "Password must be at least 6 characters long" });
+      }
+
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ message: "User with this email already exists" });
+      }
+
+      // Create user
+      const user = await storage.createUserWithPassword({
+        email,
+        firstName,
+        lastName: lastName || '',
+        password,
+      });
+
+      // Send welcome email
+      try {
+        await sendWelcomeEmail(email, firstName);
+      } catch (emailError) {
+        console.error('Failed to send welcome email:', emailError);
+        // Don't fail registration if email fails
+      }
+
+      // Don't return password in response
+      const { password: _, ...userWithoutPassword } = user;
+      res.status(201).json(userWithoutPassword);
+    } catch (error) {
+      console.error("Registration error:", error);
+      res.status(500).json({ message: "Registration failed" });
+    }
+  });
+
+  app.post('/api/auth/login', async (req, res) => {
+    try {
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+        return res.status(400).json({ message: "Email and password are required" });
+      }
+
+      // Validate user credentials
+      const user = await storage.validateUserPassword(email, password);
+      if (!user) {
+        return res.status(401).json({ message: "Invalid email or password" });
+      }
+
+      // Create a session-like response (simplified)
+      // In a full implementation, you'd set up proper session management
+      const { password: _, ...userWithoutPassword } = user;
+      res.json({
+        message: "Login successful",
+        user: userWithoutPassword
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(500).json({ message: "Login failed" });
     }
   });
 

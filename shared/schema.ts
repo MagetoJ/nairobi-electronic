@@ -32,9 +32,12 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
+  password: varchar("password"), // hashed password for local auth
   role: varchar("role").default("user"), // user, admin
   phone: varchar("phone"),
   address: text("address"),
+  isEmailVerified: boolean("is_email_verified").default(false),
+  authProvider: varchar("auth_provider").default("local"), // local, google, replit
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

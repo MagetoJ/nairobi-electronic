@@ -125,10 +125,9 @@ export default function Header() {
                     size="sm"
                     onClick={() => setIsRegisterOpen(true)}
                     data-testid="button-register"
-                    className="hidden md:flex"
                   >
                     <UserPlus className="w-4 h-4 mr-2" />
-                    <span className="hidden lg:inline">Register</span>
+                    <span className="hidden sm:inline">Register</span>
                   </Button>
                 </div>
               )}
