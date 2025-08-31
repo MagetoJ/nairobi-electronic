@@ -26,7 +26,7 @@ export default function About() {
     <div className="container mx-auto px-4 py-8" data-testid="about-page">
       {/* Hero Section */}
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold mb-4" data-testid="page-title">About PC Today</h1>
+        <h1 className="text-4xl font-bold mb-4" data-testid="page-title">About Nairobi Electronics</h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
           Kenya's premier electronics marketplace, bringing you the latest technology 
           at unbeatable prices with exceptional service.
@@ -44,7 +44,7 @@ export default function About() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-muted-foreground">
-              Founded in Nairobi, PC Today has been serving Kenya's tech community for years. 
+              Founded in Nairobi, Nairobi Electronics has been serving Kenya's tech community for years. 
               We started with a simple mission: to make high-quality electronics accessible 
               to everyone across Kenya.
             </p>
@@ -120,7 +120,7 @@ export default function About() {
 
       {/* Features Section */}
       <div className="mb-12">
-        <h2 className="text-3xl font-bold text-center mb-8">Why Choose PC Today?</h2>
+        <h2 className="text-3xl font-bold text-center mb-8">Why Choose Nairobi Electronics?</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {features.map((feature, index) => (
             <Card key={index} className="text-center">

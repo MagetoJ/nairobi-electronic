@@ -90,7 +90,7 @@ function PWAInstaller() {
             justify-content: between;
           ">
             <div style="flex: 1;">
-              <strong>Install PC Today App</strong>
+              <strong>Install Nairobi Electronics App</strong>
               <p style="margin: 4px 0 0 0; opacity: 0.9; font-size: 14px;">Shop faster with our mobile app</p>
             </div>
             <div style="display: flex; gap: 8px;">

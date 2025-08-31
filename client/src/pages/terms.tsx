@@ -57,7 +57,7 @@ export default function Terms() {
         <Card>
           <CardContent className="p-8">
             <p className="text-muted-foreground leading-relaxed">
-              Welcome to PC Today. These Terms of Service ("Terms") govern your use of our website 
+              Welcome to Nairobi Electronics. These Terms of Service ("Terms") govern your use of our website 
               and services. By accessing or using our website, you agree to be bound by these Terms. 
               If you disagree with any part of these terms, you may not access our service.
             </p>
@@ -74,7 +74,7 @@ export default function Terms() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-muted-foreground">
-              By using PC Today's website and services, you acknowledge that you have read, 
+              By using Nairobi Electronics' website and services, you acknowledge that you have read, 
               understood, and agree to be bound by these Terms of Service and our Privacy Policy.
             </p>
             <div className="bg-muted/50 p-4 rounded-lg">
@@ -179,7 +179,7 @@ export default function Terms() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-muted-foreground">
-              PC Today shall not be liable for any indirect, incidental, special, consequential, 
+              Nairobi Electronics shall not be liable for any indirect, incidental, special, consequential, 
               or punitive damages, including loss of profits, data, use, goodwill, or other 
               intangible losses resulting from your use of our services.
             </p>
@@ -202,14 +202,14 @@ export default function Terms() {
           <CardContent className="space-y-4">
             <p className="text-muted-foreground">
               The content on this website, including text, graphics, logos, images, and software, 
-              is the property of PC Today or its content suppliers and is protected by copyright 
+              is the property of Nairobi Electronics or its content suppliers and is protected by copyright 
               and other intellectual property laws.
             </p>
             <div className="space-y-3">
               <div>
                 <h4 className="font-medium">Trademarks</h4>
                 <p className="text-sm text-muted-foreground">
-                  PC Today and our logo are trademarks of our company. All other trademarks 
+                  Nairobi Electronics and our logo are trademarks of our company. All other trademarks 
                   are the property of their respective owners.
                 </p>
               </div>

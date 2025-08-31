@@ -42,9 +42,9 @@ export default function Header() {
             {/* Logo */}
             <Link href="/" className="flex items-center space-x-2" data-testid="logo-link">
               <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-lg">PC</span>
+                <span className="text-primary-foreground font-bold text-lg">NE</span>
               </div>
-              <span className="text-xl font-bold text-foreground">PC Today</span>
+              <span className="text-xl font-bold text-foreground">Nairobi Electronics</span>
             </Link>
             
             {/* Search Bar - Desktop */}

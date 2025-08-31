@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import ProductManagement from "./product-management";
+import UserManagement from "./user-management";
+import OrderManagement from "./order-management";
 import { Package, Users, Clock, DollarSign, BarChart3, ShoppingBag, UserCheck, Settings } from "lucide-react";
 
 const menuItems = [
@@ -15,7 +17,12 @@ const menuItems = [
 export default function AdminDashboard() {
   const [activeSection, setActiveSection] = useState("dashboard");
 
-  const { data: stats, isLoading: statsLoading } = useQuery({
+  const { data: stats, isLoading: statsLoading } = useQuery<{
+    totalProducts: string;
+    totalUsers: string;
+    pendingOrders: string;
+    revenue: string;
+  }>({
     queryKey: ["/api/admin/stats"],
   });
 
@@ -24,19 +31,9 @@ export default function AdminDashboard() {
       case "products":
         return <ProductManagement />;
       case "users":
-        return (
-          <div className="text-center py-12">
-            <Users className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">User management coming soon</p>
-          </div>
-        );
+        return <UserManagement />;
       case "orders":
-        return (
-          <div className="text-center py-12">
-            <ShoppingBag className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">Order management coming soon</p>
-          </div>
-        );
+        return <OrderManagement />;
       default:
         return (
           <div>
@@ -48,7 +45,7 @@ export default function AdminDashboard() {
                     <div>
                       <p className="text-muted-foreground text-sm">Total Products</p>
                       <p className="text-2xl font-bold" data-testid="stat-total-products">
-                        {statsLoading ? "..." : (stats?.totalProducts || 0)}
+                        {statsLoading ? "..." : (stats?.totalProducts || "0")}
                       </p>
                     </div>
                     <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
@@ -64,7 +61,7 @@ export default function AdminDashboard() {
                     <div>
                       <p className="text-muted-foreground text-sm">Total Users</p>
                       <p className="text-2xl font-bold" data-testid="stat-total-users">
-                        {statsLoading ? "..." : (stats?.totalUsers || 0)}
+                        {statsLoading ? "..." : (stats?.totalUsers || "0")}
                       </p>
                     </div>
                     <div className="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center">
@@ -80,7 +77,7 @@ export default function AdminDashboard() {
                     <div>
                       <p className="text-muted-foreground text-sm">Pending Orders</p>
                       <p className="text-2xl font-bold" data-testid="stat-pending-orders">
-                        {statsLoading ? "..." : (stats?.pendingOrders || 0)}
+                        {statsLoading ? "..." : (stats?.pendingOrders || "0")}
                       </p>
                     </div>
                     <div className="w-12 h-12 bg-yellow-500/10 rounded-lg flex items-center justify-center">
@@ -149,7 +146,7 @@ export default function AdminDashboard() {
         <aside className="w-64 bg-card rounded-xl p-6 mr-8 h-fit">
           <div className="flex items-center space-x-2 mb-8" data-testid="admin-logo">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">PC</span>
+              <span className="text-primary-foreground font-bold text-sm">NE</span>
             </div>
             <span className="font-bold">Admin Panel</span>
           </div>

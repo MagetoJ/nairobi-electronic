@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pc-today-v1';
+const CACHE_NAME = 'nairobi-electronics-v1';
 const urlsToCache = [
   '/',
   '/products',
@@ -99,7 +99,7 @@ self.addEventListener('sync', (event) => {
 // Handle push notifications (if needed)
 self.addEventListener('push', (event) => {
   const options = {
-    body: event.data ? event.data.text() : 'New notification from PC Today',
+    body: event.data ? event.data.text() : 'New notification from Nairobi Electronics',
     icon: '/manifest.json',
     badge: '/manifest.json',
     vibrate: [100, 50, 100],
@@ -122,7 +122,7 @@ self.addEventListener('push', (event) => {
   };
   
   event.waitUntil(
-    self.registration.showNotification('PC Today', options)
+    self.registration.showNotification('Nairobi Electronics', options)
   );
 });
 

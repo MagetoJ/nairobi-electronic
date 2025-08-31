@@ -1,6 +1,6 @@
 # Overview
 
-PC Today is a comprehensive e-commerce platform specializing in electronics, built as a Kenya-focused marketplace. The application features a full-stack architecture with React/TypeScript frontend, Express.js backend, and PostgreSQL database with Drizzle ORM. It includes features like product management, shopping cart, order processing with cash-on-delivery, admin dashboard, and PWA capabilities for mobile users.
+Nairobi Electronics is a comprehensive e-commerce platform specializing in electronics, built as a Kenya-focused marketplace. The application features a full-stack architecture with React/TypeScript frontend, Express.js backend, and PostgreSQL database with Drizzle ORM. It includes features like product management, shopping cart, order processing with cash-on-delivery, admin dashboard, and PWA capabilities for mobile users.
 
 # User Preferences
 

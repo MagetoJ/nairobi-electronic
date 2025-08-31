@@ -116,7 +116,7 @@ export default function Orders() {
           <div>
             <h1 className="text-3xl font-bold" data-testid="page-title">Order History</h1>
             <p className="text-muted-foreground">
-              Track and manage all your orders from PC Today
+              Track and manage all your orders from Nairobi Electronics
             </p>
           </div>
           <Link href="/products">

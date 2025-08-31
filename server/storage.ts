@@ -54,6 +54,8 @@ export interface IStorage {
   createOrderItem(orderItem: InsertOrderItem): Promise<OrderItem>;
   
   // Admin operations
+  getAllUsers(): Promise<User[]>;
+  getOrdersWithDetails(): Promise<any[]>;
   getStats(): Promise<{
     totalProducts: number;
     totalUsers: number;
@@ -126,27 +128,27 @@ export class DatabaseStorage implements IStorage {
     }
 
     if (filters?.search) {
-      conditions.push(
-        or(
-          ilike(products.name, `%${filters.search}%`),
-          ilike(products.description, `%${filters.search}%`)
-        )
+      const searchCondition = or(
+        ilike(products.name, `%${filters.search}%`),
+        ilike(products.description, `%${filters.search}%`)
       );
+      if (searchCondition) {
+        conditions.push(searchCondition);
+      }
     }
 
-    let query = db.select().from(products).where(and(...conditions));
+    let baseQuery = db.select().from(products).where(and(...conditions))
+      .orderBy(desc(products.createdAt));
 
-    query = query.orderBy(desc(products.createdAt));
-
-    if (filters?.limit) {
-      query = query.limit(filters.limit);
+    if (filters?.limit && filters?.offset) {
+      return await baseQuery.limit(filters.limit).offset(filters.offset);
+    } else if (filters?.limit) {
+      return await baseQuery.limit(filters.limit);
+    } else if (filters?.offset) {
+      return await baseQuery.offset(filters.offset);
     }
 
-    if (filters?.offset) {
-      query = query.offset(filters.offset);
-    }
-
-    return await query;
+    return await baseQuery;
   }
 
   async getProduct(id: string): Promise<Product | undefined> {
@@ -183,13 +185,14 @@ export class DatabaseStorage implements IStorage {
 
   // Order operations
   async getOrders(userId?: string): Promise<Order[]> {
-    let query = db.select().from(orders);
-    
     if (userId) {
-      query = query.where(eq(orders.userId, userId));
+      return await db.select().from(orders)
+        .where(eq(orders.userId, userId))
+        .orderBy(desc(orders.createdAt));
     }
     
-    return await query.orderBy(desc(orders.createdAt));
+    return await db.select().from(orders)
+      .orderBy(desc(orders.createdAt));
   }
 
   async getOrder(id: string): Promise<Order | undefined> {
@@ -222,6 +225,63 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Admin operations
+  // Admin operations
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users).orderBy(desc(users.createdAt));
+  }
+
+  async getOrdersWithDetails(): Promise<any[]> {
+    const ordersWithDetails = await db
+      .select({
+        id: orders.id,
+        userId: orders.userId,
+        status: orders.status,
+        total: orders.total,
+        shippingAddress: orders.shippingAddress,
+        phone: orders.phone,
+        createdAt: orders.createdAt,
+        updatedAt: orders.updatedAt,
+        user: {
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+        },
+      })
+      .from(orders)
+      .leftJoin(users, eq(orders.userId, users.id))
+      .orderBy(desc(orders.createdAt));
+
+    // Get order items for each order
+    const ordersWithItems = await Promise.all(
+      ordersWithDetails.map(async (order) => {
+        const items = await db
+          .select({
+            id: orderItems.id,
+            orderId: orderItems.orderId,
+            productId: orderItems.productId,
+            quantity: orderItems.quantity,
+            price: orderItems.priceAtTime,
+            product: {
+              id: products.id,
+              name: products.name,
+              images: products.images,
+            },
+          })
+          .from(orderItems)
+          .leftJoin(products, eq(orderItems.productId, products.id))
+          .where(eq(orderItems.orderId, order.id));
+
+        return {
+          ...order,
+          items,
+        };
+      })
+    );
+
+    return ordersWithItems;
+  }
+
   async getStats(): Promise<{
     totalProducts: number;
     totalUsers: number;

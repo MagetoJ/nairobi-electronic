@@ -64,7 +64,7 @@ export default function Admin() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 bg-primary rounded-lg flex items-center justify-center mx-auto mb-4">
-            <span className="text-primary-foreground font-bold text-xl">PC</span>
+            <span className="text-primary-foreground font-bold text-xl">NE</span>
           </div>
           <p className="text-muted-foreground">Loading...</p>
         </div>

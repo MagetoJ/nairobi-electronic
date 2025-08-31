@@ -10,9 +10,9 @@ export default function Footer() {
           <div>
             <div className="flex items-center space-x-2 mb-4" data-testid="footer-logo">
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">PC</span>
+                <span className="text-primary-foreground font-bold text-sm">NE</span>
               </div>
-              <span className="text-lg font-bold">PC Today</span>
+              <span className="text-lg font-bold">Nairobi Electronics</span>
             </div>
             <p className="text-muted-foreground text-sm mb-4" data-testid="footer-description">
               Kenya's premier electronics marketplace offering the latest technology with reliable cash on delivery service.
@@ -78,7 +78,7 @@ export default function Footer() {
         <div className="border-t border-border pt-8 mt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-sm text-muted-foreground" data-testid="copyright">
-              &copy; 2024 PC Today. All rights reserved.
+              &copy; 2024 Nairobi Electronics. All rights reserved.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <Link href="/privacy" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-privacy">

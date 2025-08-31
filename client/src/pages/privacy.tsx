@@ -57,7 +57,7 @@ export default function Privacy() {
         <Card>
           <CardContent className="p-8">
             <p className="text-muted-foreground leading-relaxed">
-              PC Today ("we," "our," or "us") is committed to protecting your privacy and ensuring the security 
+              Nairobi Electronics ("we," "our," or "us") is committed to protecting your privacy and ensuring the security 
               of your personal information. This Privacy Policy explains how we collect, use, disclose, and 
               safeguard your information when you use our website and services. By using our website, you 
               consent to the data practices described in this policy.
