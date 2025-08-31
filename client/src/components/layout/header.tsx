@@ -6,7 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
 import CartSidebar from "@/components/cart/cart-sidebar";
-import { Search, ShoppingCart, User, Menu, X } from "lucide-react";
+import LoginForm from "@/components/auth/login-form";
+import RegisterForm from "@/components/auth/register-form";
+import { Search, ShoppingCart, User, Menu, X, UserPlus } from "lucide-react";
 
 export default function Header() {
   const [location] = useLocation();
@@ -15,6 +17,8 @@ export default function Header() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,15 +110,27 @@ export default function Header() {
                   </Button>
                 </div>
               ) : (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => window.location.href = "/api/login"}
-                  data-testid="button-login"
-                >
-                  <User className="w-4 h-4 mr-2" />
-                  <span className="hidden md:inline">Sign In</span>
-                </Button>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsLoginOpen(true)}
+                    data-testid="button-login"
+                  >
+                    <User className="w-4 h-4 mr-2" />
+                    <span className="hidden md:inline">Sign In</span>
+                  </Button>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={() => setIsRegisterOpen(true)}
+                    data-testid="button-register"
+                    className="hidden md:flex"
+                  >
+                    <UserPlus className="w-4 h-4 mr-2" />
+                    <span className="hidden lg:inline">Register</span>
+                  </Button>
+                </div>
               )}
               
               {/* Cart Button */}
@@ -183,6 +199,36 @@ export default function Header() {
                       {item.name}
                     </Link>
                   ))}
+                  
+                  {/* Mobile Auth Buttons */}
+                  {!isAuthenticated && (
+                    <div className="flex flex-col space-y-2 pt-2 border-t border-border">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setIsLoginOpen(true);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="justify-start px-4"
+                        data-testid="button-login-mobile"
+                      >
+                        <User className="w-4 h-4 mr-2" />
+                        Sign In
+                      </Button>
+                      <Button
+                        variant="default"
+                        onClick={() => {
+                          setIsRegisterOpen(true);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="justify-start px-4"
+                        data-testid="button-register-mobile"
+                      >
+                        <UserPlus className="w-4 h-4 mr-2" />
+                        Register
+                      </Button>
+                    </div>
+                  )}
                 </nav>
               </div>
             </div>
@@ -192,6 +238,10 @@ export default function Header() {
 
       {/* Cart Sidebar */}
       <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+      
+      {/* Auth Modals */}
+      <LoginForm isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+      <RegisterForm isOpen={isRegisterOpen} onClose={() => setIsRegisterOpen(false)} />
     </>
   );
 }
