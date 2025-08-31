@@ -50,7 +50,7 @@ export default function Products() {
     queryFn: async () => {
       const params = new URLSearchParams();
       if (debouncedSearch) params.append("search", debouncedSearch);
-      if (category) params.append("category", category);
+      if (category) params.append("categoryId", category);
       
       const response = await fetch(`/api/products?${params}`);
       if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);

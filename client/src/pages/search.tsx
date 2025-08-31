@@ -63,7 +63,7 @@ export default function Search() {
     queryFn: () => {
       const params = new URLSearchParams();
       if (searchQuery) params.set('search', searchQuery);
-      if (selectedCategory) params.set('category', selectedCategory);
+      if (selectedCategory) params.set('categoryId', selectedCategory);
       return fetch(`/api/products?${params.toString()}`).then(res => res.json());
     },
   });
