@@ -4,6 +4,7 @@ import {
   products,
   orders,
   orderItems,
+  reviews,
   type User,
   type UpsertUser,
   type Category,
@@ -14,6 +15,8 @@ import {
   type InsertOrder,
   type OrderItem,
   type InsertOrderItem,
+  type Review,
+  type InsertReview,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, like, desc, asc, and, or, ilike, sql } from "drizzle-orm";
@@ -57,6 +60,14 @@ export interface IStorage {
   // Order items operations
   getOrderItems(orderId: string): Promise<OrderItem[]>;
   createOrderItem(orderItem: InsertOrderItem): Promise<OrderItem>;
+  
+  // Review operations
+  getProductReviews(productId: string): Promise<Review[]>;
+  getUserReviews(userId: string): Promise<Review[]>;
+  createReview(review: InsertReview): Promise<Review>;
+  updateReview(id: string, review: Partial<InsertReview>): Promise<Review>;
+  deleteReview(id: string): Promise<void>;
+  incrementReviewHelpful(id: string): Promise<Review>;
   
   // Admin operations
   getAllUsers(): Promise<User[]>;
@@ -359,6 +370,98 @@ export class DatabaseStorage implements IStorage {
       .where(eq(orders.id, id));
 
     return orderWithUser;
+  }
+
+  // Review operations
+  async getProductReviews(productId: string): Promise<Review[]> {
+    const productReviews = await db
+      .select({
+        id: reviews.id,
+        productId: reviews.productId,
+        userId: reviews.userId,
+        rating: reviews.rating,
+        title: reviews.title,
+        comment: reviews.comment,
+        verified: reviews.verified,
+        helpful: reviews.helpful,
+        createdAt: reviews.createdAt,
+        updatedAt: reviews.updatedAt,
+        userName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
+        userInitials: sql<string>`CONCAT(LEFT(${users.firstName}, 1), LEFT(${users.lastName}, 1))`,
+      })
+      .from(reviews)
+      .leftJoin(users, eq(reviews.userId, users.id))
+      .where(eq(reviews.productId, productId))
+      .orderBy(desc(reviews.createdAt));
+
+    return productReviews as any;
+  }
+
+  async getUserReviews(userId: string): Promise<Review[]> {
+    return await db.select().from(reviews).where(eq(reviews.userId, userId)).orderBy(desc(reviews.createdAt));
+  }
+
+  async createReview(review: InsertReview): Promise<Review> {
+    const [newReview] = await db.insert(reviews).values(review).returning();
+    
+    // Update product rating
+    await this.updateProductRating(review.productId);
+    
+    return newReview;
+  }
+
+  async updateReview(id: string, reviewData: Partial<InsertReview>): Promise<Review> {
+    const [updatedReview] = await db
+      .update(reviews)
+      .set({ ...reviewData, updatedAt: new Date() })
+      .where(eq(reviews.id, id))
+      .returning();
+
+    // Update product rating if rating changed
+    if (reviewData.rating) {
+      await this.updateProductRating(updatedReview.productId);
+    }
+
+    return updatedReview;
+  }
+
+  async deleteReview(id: string): Promise<void> {
+    const [deletedReview] = await db.delete(reviews).where(eq(reviews.id, id)).returning();
+    
+    // Update product rating after deletion
+    if (deletedReview) {
+      await this.updateProductRating(deletedReview.productId);
+    }
+  }
+
+  async incrementReviewHelpful(id: string): Promise<Review> {
+    const [updatedReview] = await db
+      .update(reviews)
+      .set({ helpful: sql`${reviews.helpful} + 1` })
+      .where(eq(reviews.id, id))
+      .returning();
+
+    return updatedReview;
+  }
+
+  private async updateProductRating(productId: string): Promise<void> {
+    const ratingData = await db
+      .select({
+        avgRating: sql<number>`ROUND(AVG(CAST(${reviews.rating} AS DECIMAL)), 2)`,
+        reviewCount: sql<number>`COUNT(*)`,
+      })
+      .from(reviews)
+      .where(eq(reviews.productId, productId));
+
+    if (ratingData[0]) {
+      await db
+        .update(products)
+        .set({
+          rating: ratingData[0].avgRating?.toString(),
+          reviewCount: ratingData[0].reviewCount || 0,
+        })
+        .where(eq(products.id, productId));
+    }
   }
 
   async getStats(): Promise<{

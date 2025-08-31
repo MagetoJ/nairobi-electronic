@@ -10,6 +10,7 @@ import { useCart } from "@/hooks/useCart";
 import { useToast } from "@/hooks/use-toast";
 import { Star, ShoppingCart, Minus, Plus, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
+import { ReviewsSection } from "@/components/product/reviews-section";
 
 interface Product {
   id: string;
@@ -263,6 +264,11 @@ export default function ProductDetail() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Reviews Section */}
+      <div className="container mx-auto px-4">
+        <ReviewsSection productId={product.id} />
       </div>
     </div>
   );

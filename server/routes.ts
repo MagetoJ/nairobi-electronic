@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
-import { insertProductSchema, insertCategorySchema, insertOrderSchema, insertOrderItemSchema } from "@shared/schema";
+import { insertProductSchema, insertCategorySchema, insertOrderSchema, insertOrderItemSchema, insertReviewSchema } from "@shared/schema";
 import { generateSitemap } from "./sitemap";
 import { sendWelcomeEmail, sendOrderDispatchEmail } from "./emailService";
 import * as bcrypt from 'bcryptjs';
@@ -273,6 +273,108 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting product:", error);
       res.status(500).json({ message: "Failed to delete product" });
+    }
+  });
+
+  // Review routes
+  app.get('/api/products/:productId/reviews', async (req, res) => {
+    try {
+      const reviews = await storage.getProductReviews(req.params.productId);
+      res.json(reviews);
+    } catch (error) {
+      console.error("Error fetching product reviews:", error);
+      res.status(500).json({ message: "Failed to fetch reviews" });
+    }
+  });
+
+  app.post('/api/products/:productId/reviews', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const productId = req.params.productId;
+      
+      const reviewData = insertReviewSchema.parse({
+        ...req.body,
+        userId,
+        productId,
+      });
+
+      const review = await storage.createReview(reviewData);
+      res.json(review);
+    } catch (error) {
+      console.error("Error creating review:", error);
+      res.status(500).json({ message: "Failed to create review" });
+    }
+  });
+
+  app.get('/api/users/:userId/reviews', isAuthenticated, async (req: any, res) => {
+    try {
+      const requestedUserId = req.params.userId;
+      const currentUserId = req.user.id;
+      const currentUser = req.user;
+
+      // Users can only see their own reviews unless they're admin
+      if (requestedUserId !== currentUserId && currentUser.email !== 'jabezmageto78@gmail.com') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const reviews = await storage.getUserReviews(requestedUserId);
+      res.json(reviews);
+    } catch (error) {
+      console.error("Error fetching user reviews:", error);
+      res.status(500).json({ message: "Failed to fetch user reviews" });
+    }
+  });
+
+  app.put('/api/reviews/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const reviewId = req.params.id;
+      const userId = req.user.id;
+      
+      // Check if user owns this review or is admin
+      const existingReviews = await storage.getUserReviews(userId);
+      const userOwnsReview = existingReviews.some(review => review.id === reviewId);
+      
+      if (!userOwnsReview && req.user.email !== 'jabezmageto78@gmail.com') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const reviewData = insertReviewSchema.partial().parse(req.body);
+      const updatedReview = await storage.updateReview(reviewId, reviewData);
+      res.json(updatedReview);
+    } catch (error) {
+      console.error("Error updating review:", error);
+      res.status(500).json({ message: "Failed to update review" });
+    }
+  });
+
+  app.delete('/api/reviews/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const reviewId = req.params.id;
+      const userId = req.user.id;
+      
+      // Check if user owns this review or is admin
+      const existingReviews = await storage.getUserReviews(userId);
+      const userOwnsReview = existingReviews.some(review => review.id === reviewId);
+      
+      if (!userOwnsReview && req.user.email !== 'jabezmageto78@gmail.com') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      await storage.deleteReview(reviewId);
+      res.json({ message: "Review deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting review:", error);
+      res.status(500).json({ message: "Failed to delete review" });
+    }
+  });
+
+  app.post('/api/reviews/:id/helpful', async (req, res) => {
+    try {
+      const updatedReview = await storage.incrementReviewHelpful(req.params.id);
+      res.json(updatedReview);
+    } catch (error) {
+      console.error("Error marking review as helpful:", error);
+      res.status(500).json({ message: "Failed to mark review as helpful" });
     }
   });
 
