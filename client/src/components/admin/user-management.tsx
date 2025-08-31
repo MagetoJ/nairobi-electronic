@@ -1,9 +1,16 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Users, UserCheck, Clock } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { Users, UserCheck, Clock, UserPlus, Trash2 } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
+import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 
 interface User {
@@ -18,9 +25,100 @@ interface User {
 }
 
 export default function UserManagement() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [isAddUserOpen, setIsAddUserOpen] = useState(false);
+  const [newUserEmail, setNewUserEmail] = useState("");
+  const [newUserFirstName, setNewUserFirstName] = useState("");
+  const [newUserLastName, setNewUserLastName] = useState("");
+
   const { data: users, isLoading: usersLoading } = useQuery<User[]>({
     queryKey: ["/api/admin/users"],
   });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      await apiRequest(`/api/admin/users/${userId}`, {
+        method: "DELETE",
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      toast({
+        title: "Success",
+        description: "User deleted successfully.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete user. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const addUserMutation = useMutation({
+    mutationFn: async (userData: { email: string; firstName: string; lastName: string }) => {
+      await apiRequest("/api/admin/users", {
+        method: "POST",
+        body: JSON.stringify(userData),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      setIsAddUserOpen(false);
+      setNewUserEmail("");
+      setNewUserFirstName("");
+      setNewUserLastName("");
+      toast({
+        title: "Success",
+        description: "User added successfully.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to add user. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDeleteUser = (userId: string, userEmail: string) => {
+    if (userEmail === 'jabezmageto78@gmail.com') {
+      toast({
+        title: "Error",
+        description: "Cannot delete the main admin user.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+      deleteUserMutation.mutate(userId);
+    }
+  };
+
+  const handleAddUser = () => {
+    if (!newUserEmail.trim() || !newUserFirstName.trim()) {
+      toast({
+        title: "Error",
+        description: "Email and first name are required.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    addUserMutation.mutate({
+      email: newUserEmail.trim(),
+      firstName: newUserFirstName.trim(),
+      lastName: newUserLastName.trim(),
+    });
+  };
 
   const getUserInitials = (user: User) => {
     if (user.firstName && user.lastName) {
@@ -54,6 +152,67 @@ export default function UserManagement() {
             Manage and view all registered users
           </p>
         </div>
+        <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <UserPlus className="w-4 h-4 mr-2" />
+              Add User
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New User</DialogTitle>
+              <DialogDescription>
+                Create a new user account. They will receive an email confirmation.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="email">Email Address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="user@example.com"
+                  value={newUserEmail}
+                  onChange={(e) => setNewUserEmail(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="firstName">First Name</Label>
+                <Input
+                  id="firstName"
+                  placeholder="John"
+                  value={newUserFirstName}
+                  onChange={(e) => setNewUserFirstName(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  id="lastName"
+                  placeholder="Doe"
+                  value={newUserLastName}
+                  onChange={(e) => setNewUserLastName(e.target.value)}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={() => setIsAddUserOpen(false)}
+                disabled={addUserMutation.isPending}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleAddUser}
+                disabled={addUserMutation.isPending}
+              >
+                {addUserMutation.isPending ? "Adding..." : "Add User"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Stats Cards */}
@@ -128,6 +287,7 @@ export default function UserManagement() {
                     <TableHead>Role</TableHead>
                     <TableHead>Joined</TableHead>
                     <TableHead>Last Updated</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -174,6 +334,18 @@ export default function UserManagement() {
                         <span className="text-sm">
                           {formatDistanceToNow(new Date(user.updatedAt), { addSuffix: true })}
                         </span>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDeleteUser(user.id, user.email || '')}
+                          disabled={deleteUserMutation.isPending || user.email === 'jabezmageto78@gmail.com'}
+                          data-testid={`delete-user-${user.id}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          {deleteUserMutation.isPending ? "Deleting..." : "Delete"}
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}

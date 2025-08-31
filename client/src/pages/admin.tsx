@@ -12,7 +12,7 @@ export default function Admin() {
 
   const { error: statsError } = useQuery({
     queryKey: ["/api/admin/stats"],
-    enabled: !!user && user.role === 'admin',
+    enabled: !!user && user.email === 'jabezmageto78@gmail.com',
   });
 
   // Redirect to login if not authenticated
@@ -30,9 +30,9 @@ export default function Admin() {
     }
   }, [isAuthenticated, isLoading, toast]);
 
-  // Check admin role
+  // Check admin access
   useEffect(() => {
-    if (!isLoading && isAuthenticated && user && user.role !== 'admin') {
+    if (!isLoading && isAuthenticated && user && user.email !== 'jabezmageto78@gmail.com') {
       toast({
         title: "Access Denied",
         description: "You don't have permission to access the admin panel.",

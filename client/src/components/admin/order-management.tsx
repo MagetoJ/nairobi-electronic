@@ -1,9 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ShoppingBag, Package, MapPin, Phone, Clock, DollarSign } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { ShoppingBag, Package, MapPin, Phone, Clock, DollarSign, CheckCircle, Truck } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
 import { formatDistanceToNow } from "date-fns";
 
 interface OrderItem {
@@ -38,9 +41,42 @@ interface Order {
 }
 
 export default function OrderManagement() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
   const { data: orders, isLoading: ordersLoading } = useQuery<Order[]>({
     queryKey: ["/api/admin/orders"],
   });
+
+  const updateOrderStatusMutation = useMutation({
+    mutationFn: async ({ orderId, status }: { orderId: string; status: string }) => {
+      await apiRequest(`/api/orders/${orderId}/status`, {
+        method: "PUT",
+        body: JSON.stringify({ status }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/orders"] });
+      toast({
+        title: "Success",
+        description: "Order status updated successfully.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update order status. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleStatusUpdate = (orderId: string, newStatus: string) => {
+    updateOrderStatusMutation.mutate({ orderId, status: newStatus });
+  };
 
   const getUserDisplayName = (order: Order) => {
     if (order.user?.firstName && order.user?.lastName) {
@@ -189,6 +225,7 @@ export default function OrderManagement() {
                     <TableHead>Status</TableHead>
                     <TableHead>Delivery Info</TableHead>
                     <TableHead>Date</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -257,6 +294,45 @@ export default function OrderManagement() {
                       <TableCell>
                         <div className="text-sm">
                           {formatDistanceToNow(new Date(order.createdAt), { addSuffix: true })}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col gap-2">
+                          {order.status === 'pending' && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleStatusUpdate(order.id, 'confirmed')}
+                              disabled={updateOrderStatusMutation.isPending}
+                              data-testid={`confirm-order-${order.id}`}
+                            >
+                              <CheckCircle className="w-4 h-4 mr-1" />
+                              Confirm
+                            </Button>
+                          )}
+                          {(order.status === 'confirmed' || order.status === 'processing') && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleStatusUpdate(order.id, 'shipped')}
+                              disabled={updateOrderStatusMutation.isPending}
+                              data-testid={`ship-order-${order.id}`}
+                            >
+                              <Truck className="w-4 h-4 mr-1" />
+                              Ship
+                            </Button>
+                          )}
+                          {order.status === 'shipped' && (
+                            <Button
+                              size="sm"
+                              onClick={() => handleStatusUpdate(order.id, 'delivered')}
+                              disabled={updateOrderStatusMutation.isPending}
+                              data-testid={`deliver-order-${order.id}`}
+                            >
+                              <Package className="w-4 h-4 mr-1" />
+                              Complete
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>

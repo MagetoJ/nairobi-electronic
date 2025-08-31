@@ -30,7 +30,7 @@ export default function Header() {
     { name: "Contact", href: "/contact" },
   ];
 
-  if (user?.role === 'admin') {
+  if (user?.email === 'jabezmageto78@gmail.com') {
     navigation.push({ name: "Admin", href: "/admin" });
   }
 

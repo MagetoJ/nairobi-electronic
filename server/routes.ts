@@ -35,7 +35,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/categories', isAuthenticated, async (req: any, res) => {
     try {
       const user = await storage.getUser(req.user.claims.sub);
-      if (user?.role !== 'admin') {
+      if (user?.email !== 'jabezmageto78@gmail.com') {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -94,7 +94,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/products', isAuthenticated, async (req: any, res) => {
     try {
       const user = await storage.getUser(req.user.claims.sub);
-      if (user?.role !== 'admin') {
+      if (user?.email !== 'jabezmageto78@gmail.com') {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -110,7 +110,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put('/api/products/:id', isAuthenticated, async (req: any, res) => {
     try {
       const user = await storage.getUser(req.user.claims.sub);
-      if (user?.role !== 'admin') {
+      if (user?.email !== 'jabezmageto78@gmail.com') {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -126,7 +126,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/products/:id', isAuthenticated, async (req: any, res) => {
     try {
       const user = await storage.getUser(req.user.claims.sub);
-      if (user?.role !== 'admin') {
+      if (user?.email !== 'jabezmageto78@gmail.com') {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -206,7 +206,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put('/api/orders/:id/status', isAuthenticated, async (req: any, res) => {
     try {
       const user = await storage.getUser(req.user.claims.sub);
-      if (user?.role !== 'admin') {
+      if (user?.email !== 'jabezmageto78@gmail.com') {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -223,7 +223,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/admin/stats', isAuthenticated, async (req: any, res) => {
     try {
       const user = await storage.getUser(req.user.claims.sub);
-      if (user?.role !== 'admin') {
+      if (user?.email !== 'jabezmageto78@gmail.com') {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -239,7 +239,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/admin/users', isAuthenticated, async (req: any, res) => {
     try {
       const user = await storage.getUser(req.user.claims.sub);
-      if (user?.role !== 'admin') {
+      if (user?.email !== 'jabezmageto78@gmail.com') {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -255,7 +255,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/admin/orders', isAuthenticated, async (req: any, res) => {
     try {
       const user = await storage.getUser(req.user.claims.sub);
-      if (user?.role !== 'admin') {
+      if (user?.email !== 'jabezmageto78@gmail.com') {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -264,6 +264,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching orders:", error);
       res.status(500).json({ message: "Failed to fetch orders" });
+    }
+  });
+
+  // Admin user management endpoints
+  app.post('/api/admin/users', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.email !== 'jabezmageto78@gmail.com') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { email, firstName, lastName } = req.body;
+      if (!email || !firstName) {
+        return res.status(400).json({ message: "Email and first name are required" });
+      }
+
+      const newUser = await storage.createUser({
+        email,
+        firstName,
+        lastName,
+        role: 'user',
+      });
+
+      res.json(newUser);
+    } catch (error) {
+      console.error("Error creating user:", error);
+      res.status(500).json({ message: "Failed to create user" });
+    }
+  });
+
+  app.delete('/api/admin/users/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.email !== 'jabezmageto78@gmail.com') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const userToDelete = await storage.getUser(req.params.id);
+      if (!userToDelete) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      if (userToDelete.email === 'jabezmageto78@gmail.com') {
+        return res.status(403).json({ message: "Cannot delete the main admin user" });
+      }
+
+      await storage.deleteUser(req.params.id);
+      res.json({ message: "User deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({ message: "Failed to delete user" });
     }
   });
 
