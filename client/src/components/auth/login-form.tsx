@@ -60,8 +60,10 @@ export default function LoginForm({ isOpen, onClose }: LoginFormProps) {
       setEmail('');
       setPassword('');
       
-      // Redirect to home page
-      window.location.href = '/';
+      // Small delay then redirect to homepage to show products
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 500);
       
     } catch (error: any) {
       toast({

@@ -248,7 +248,14 @@ export default function Header() {
       
       {/* Auth Modals */}
       <LoginForm isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
-      <RegisterForm isOpen={isRegisterOpen} onClose={() => setIsRegisterOpen(false)} />
+      <RegisterForm 
+        isOpen={isRegisterOpen} 
+        onClose={() => setIsRegisterOpen(false)}
+        onSwitchToLogin={() => {
+          setIsRegisterOpen(false);
+          setIsLoginOpen(true);
+        }}
+      />
     </>
   );
 }

@@ -11,9 +11,10 @@ import { UserPlus, Mail, Lock, Eye, EyeOff, User } from "lucide-react";
 interface RegisterFormProps {
   isOpen: boolean;
   onClose: () => void;
+  onSwitchToLogin?: () => void;
 }
 
-export default function RegisterForm({ isOpen, onClose }: RegisterFormProps) {
+export default function RegisterForm({ isOpen, onClose, onSwitchToLogin }: RegisterFormProps) {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -73,16 +74,23 @@ export default function RegisterForm({ isOpen, onClose }: RegisterFormProps) {
 
       toast({
         title: "Success",
-        description: "Account created successfully! You can now sign in.",
+        description: "Account created successfully! Please sign in with your new account.",
       });
       
-      // Close modal and reset form
-      onClose();
+      // Reset form
       setFirstName('');
       setLastName('');
       setEmail('');
       setPassword('');
       setConfirmPassword('');
+      
+      // Close registration modal and open login modal
+      onClose();
+      if (onSwitchToLogin) {
+        setTimeout(() => {
+          onSwitchToLogin();
+        }, 500);
+      }
       
     } catch (error: any) {
       toast({
