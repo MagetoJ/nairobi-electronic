@@ -432,16 +432,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Admin access required" });
       }
 
-      const { email, firstName, lastName } = req.body;
+      const { email, firstName, lastName, role } = req.body;
       if (!email || !firstName) {
         return res.status(400).json({ message: "Email and first name are required" });
       }
+
+      // Validate role
+      const validRoles = ['user', 'admin'];
+      const userRole = role && validRoles.includes(role) ? role : 'user';
 
       const newUser = await storage.createUser({
         email,
         firstName,
         lastName,
-        role: 'user',
+        role: userRole,
       });
 
       // Send welcome email

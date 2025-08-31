@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Users, UserCheck, Clock, UserPlus, Trash2 } from "lucide-react";
 import { apiRequest } from "@/lib/apiRequest";
 import { useState } from "react";
@@ -31,6 +32,7 @@ export default function UserManagement() {
   const [newUserEmail, setNewUserEmail] = useState("");
   const [newUserFirstName, setNewUserFirstName] = useState("");
   const [newUserLastName, setNewUserLastName] = useState("");
+  const [newUserRole, setNewUserRole] = useState("user");
 
   const { data: users, isLoading: usersLoading } = useQuery<User[]>({
     queryKey: ["/api/admin/users"],
@@ -57,7 +59,7 @@ export default function UserManagement() {
   });
 
   const addUserMutation = useMutation({
-    mutationFn: async (userData: { email: string; firstName: string; lastName: string }) => {
+    mutationFn: async (userData: { email: string; firstName: string; lastName: string; role: string }) => {
       return await apiRequest("/api/admin/users", {
         method: "POST",
         body: JSON.stringify(userData),
@@ -72,6 +74,7 @@ export default function UserManagement() {
       setNewUserEmail("");
       setNewUserFirstName("");
       setNewUserLastName("");
+      setNewUserRole("user");
       toast({
         title: "Success",
         description: "User added successfully.",
@@ -115,6 +118,7 @@ export default function UserManagement() {
       email: newUserEmail.trim(),
       firstName: newUserFirstName.trim(),
       lastName: newUserLastName.trim(),
+      role: newUserRole,
     });
   };
 
@@ -192,6 +196,18 @@ export default function UserManagement() {
                   value={newUserLastName}
                   onChange={(e) => setNewUserLastName(e.target.value)}
                 />
+              </div>
+              <div>
+                <Label htmlFor="role">User Role</Label>
+                <Select value={newUserRole} onValueChange={setNewUserRole}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select user role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="user">User - Regular customer account</SelectItem>
+                    <SelectItem value="admin">Admin - Full management privileges</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <DialogFooter>
