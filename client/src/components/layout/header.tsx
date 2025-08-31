@@ -127,7 +127,7 @@ export default function Header() {
                     data-testid="button-register"
                   >
                     <UserPlus className="w-4 h-4 mr-2" />
-                    <span className="hidden sm:inline">Register</span>
+                    Register
                   </Button>
                 </div>
               )}
