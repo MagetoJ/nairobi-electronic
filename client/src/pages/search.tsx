@@ -12,15 +12,18 @@ import ProductGrid from "@/components/product/product-grid";
 interface Product {
   id: string;
   name: string;
-  description: string;
+  description: string | null;
   price: string;
   categoryId: string;
-  stock: number;
-  images: string[];
-  sku: string;
-  rating: string;
-  reviewCount: number;
-  status: string;
+  stock: number | null;
+  images: string[] | null;
+  sku: string | null;
+  rating: string | null;
+  reviewCount: number | null;
+  status: string | null;
+  specifications: unknown;
+  createdAt: Date | null;
+  updatedAt: Date | null;
 }
 
 interface Category {
@@ -93,7 +96,7 @@ export default function Search() {
       case 'price-high':
         return parseFloat(b.price) - parseFloat(a.price);
       case 'rating':
-        return parseFloat(b.rating) - parseFloat(a.rating);
+        return parseFloat(b.rating || '0') - parseFloat(a.rating || '0');
       case 'name':
       default:
         return a.name.localeCompare(b.name);

@@ -50,7 +50,7 @@ export default function Products() {
     queryFn: async () => {
       const params = new URLSearchParams();
       if (debouncedSearch) params.append("search", debouncedSearch);
-      if (category) params.append("categoryId", category);
+      if (category && category !== "all") params.append("categoryId", category);
       
       const response = await fetch(`/api/products?${params}`);
       if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);
@@ -111,8 +111,8 @@ export default function Products() {
                 <SelectValue placeholder="All Categories" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Categories</SelectItem>
-                {categories?.map((cat: any) => (
+                <SelectItem value="all">All Categories</SelectItem>
+                {Array.isArray(categories) && categories.map((cat: any) => (
                   <SelectItem key={cat.id} value={cat.id}>
                     {cat.name}
                   </SelectItem>
@@ -120,12 +120,12 @@ export default function Products() {
               </SelectContent>
             </Select>
             
-            {(search || category) && (
+            {(search || (category && category !== "all")) && (
               <Button
                 variant="outline"
                 onClick={() => {
                   setSearch("");
-                  setCategory("");
+                  setCategory("all");
                 }}
                 data-testid="button-clear-filters"
               >
@@ -145,14 +145,14 @@ export default function Products() {
         ) : (
           <div className="text-center py-12">
             <p className="text-muted-foreground text-lg mb-4" data-testid="no-products-message">
-              {search || category ? "No products found matching your criteria." : "No products available."}
+              {search || (category && category !== "all") ? "No products found matching your criteria." : "No products available."}
             </p>
-            {(search || category) && (
+            {(search || (category && category !== "all")) && (
               <Button
                 variant="outline"
                 onClick={() => {
                   setSearch("");
-                  setCategory("");
+                  setCategory("all");
                 }}
                 data-testid="button-view-all"
               >
