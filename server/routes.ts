@@ -1,22 +1,70 @@
-import type { Express } from "express";
+import type { Express, RequestHandler } from "express";
 import { createServer, type Server } from "http";
+import session from "express-session";
+import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertProductSchema, insertCategorySchema, insertOrderSchema, insertOrderItemSchema } from "@shared/schema";
 import { generateSitemap } from "./sitemap";
 import { sendWelcomeEmail, sendOrderDispatchEmail } from "./emailService";
 import * as bcrypt from 'bcryptjs';
 
+// Extend Express session to include user
+declare module 'express-session' {
+  interface SessionData {
+    userId?: string;
+    user?: any;
+  }
+}
+
+// Database authentication middleware
+const isAuthenticated: RequestHandler = async (req, res, next) => {
+  if (!req.session?.userId) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  
+  try {
+    const user = await storage.getUser(req.session.userId);
+    if (!user) {
+      req.session.destroy(() => {});
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
+    req.user = user;
+    next();
+  } catch (error) {
+    console.error("Authentication error:", error);
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+};
+
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Auth middleware
-  await setupAuth(app);
+  // Set up database session storage
+  const pgStore = connectPg(session);
+  const sessionStore = new pgStore({
+    conString: process.env.DATABASE_URL,
+    createTableIfMissing: false,
+    ttl: 7 * 24 * 60 * 60, // 1 week
+    tableName: "sessions",
+  });
+
+  // Configure session middleware
+  app.use(session({
+    secret: process.env.SESSION_SECRET || 'nairobi-electronics-secret-key',
+    store: sessionStore,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
+    },
+  }));
 
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
+      const { password: _, ...userWithoutPassword } = req.user;
+      res.json(userWithoutPassword);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
@@ -58,6 +106,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Don't fail registration if email fails
       }
 
+      // Create session for new user
+      req.session.userId = user.id;
+      req.session.user = user;
+      
       // Don't return password in response
       const { password: _, ...userWithoutPassword } = user;
       res.status(201).json(userWithoutPassword);
@@ -81,8 +133,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Invalid email or password" });
       }
 
-      // Create a session-like response (simplified)
-      // In a full implementation, you'd set up proper session management
+      // Create session
+      req.session.userId = user.id;
+      req.session.user = user;
+      
       const { password: _, ...userWithoutPassword } = user;
       res.json({
         message: "Login successful",
@@ -92,6 +146,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Login error:", error);
       res.status(500).json({ message: "Login failed" });
     }
+  });
+
+  app.post('/api/auth/logout', (req, res) => {
+    req.session.destroy((err) => {
+      if (err) {
+        console.error('Session destruction error:', err);
+        return res.status(500).json({ message: 'Logout failed' });
+      }
+      res.clearCookie('connect.sid');
+      res.json({ message: 'Logout successful' });
+    });
   });
 
   // Category routes
@@ -107,8 +172,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/categories', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
-      if (user?.email !== 'jabezmageto78@gmail.com') {
+      const user = req.user;
+      if (req.user?.email !== 'jabezmageto78@gmail.com') {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -166,8 +231,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/products', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
-      if (user?.email !== 'jabezmageto78@gmail.com') {
+      const user = req.user;
+      if (req.user?.email !== 'jabezmageto78@gmail.com') {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -182,8 +247,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put('/api/products/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
-      if (user?.email !== 'jabezmageto78@gmail.com') {
+      const user = req.user;
+      if (req.user?.email !== 'jabezmageto78@gmail.com') {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -198,8 +263,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete('/api/products/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
-      if (user?.email !== 'jabezmageto78@gmail.com') {
+      const user = req.user;
+      if (req.user?.email !== 'jabezmageto78@gmail.com') {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -214,7 +279,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Order routes
   app.get('/api/orders', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       let orders;
@@ -233,7 +298,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/orders', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { items, shippingAddress, phone, notes } = req.body;
 
       // Calculate total
@@ -278,8 +343,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put('/api/orders/:id/status', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
-      if (user?.email !== 'jabezmageto78@gmail.com') {
+      const user = req.user;
+      if (req.user?.email !== 'jabezmageto78@gmail.com') {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -314,8 +379,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin routes
   app.get('/api/admin/stats', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
-      if (user?.email !== 'jabezmageto78@gmail.com') {
+      const user = req.user;
+      if (req.user?.email !== 'jabezmageto78@gmail.com') {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -330,8 +395,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin Users endpoint
   app.get('/api/admin/users', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
-      if (user?.email !== 'jabezmageto78@gmail.com') {
+      const user = req.user;
+      if (req.user?.email !== 'jabezmageto78@gmail.com') {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -346,8 +411,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin Orders endpoint with detailed information
   app.get('/api/admin/orders', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
-      if (user?.email !== 'jabezmageto78@gmail.com') {
+      const user = req.user;
+      if (req.user?.email !== 'jabezmageto78@gmail.com') {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -362,8 +427,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin user management endpoints
   app.post('/api/admin/users', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
-      if (user?.email !== 'jabezmageto78@gmail.com') {
+      const user = req.user;
+      if (req.user?.email !== 'jabezmageto78@gmail.com') {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -396,8 +461,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete('/api/admin/users/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
-      if (user?.email !== 'jabezmageto78@gmail.com') {
+      const user = req.user;
+      if (req.user?.email !== 'jabezmageto78@gmail.com') {
         return res.status(403).json({ message: "Admin access required" });
       }
 
