@@ -12,7 +12,7 @@ export default function Admin() {
 
   const { error: statsError } = useQuery({
     queryKey: ["/api/admin/stats"],
-    enabled: !!user && user.email === 'jabezmageto78@gmail.com',
+    enabled: !!user && typeof user === 'object' && user !== null && 'email' in user && user.email === 'jabezmageto78@gmail.com',
   });
 
   // Redirect to login if not authenticated
@@ -32,7 +32,7 @@ export default function Admin() {
 
   // Check admin access
   useEffect(() => {
-    if (!isLoading && isAuthenticated && user && user.email !== 'jabezmageto78@gmail.com') {
+    if (!isLoading && isAuthenticated && user && typeof user === 'object' && user !== null && 'email' in user && user.email !== 'jabezmageto78@gmail.com') {
       toast({
         title: "Access Denied",
         description: "You don't have permission to access the admin panel.",
@@ -72,7 +72,7 @@ export default function Admin() {
     );
   }
 
-  if (!isAuthenticated || !user || user.role !== 'admin') {
+  if (!isAuthenticated || !user || typeof user !== 'object' || user === null || !('email' in user) || user.email !== 'jabezmageto78@gmail.com') {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">

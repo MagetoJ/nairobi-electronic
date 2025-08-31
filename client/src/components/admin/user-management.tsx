@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Users, UserCheck, Clock, UserPlus, Trash2 } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest } from "@/lib/apiRequest";
 import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 
@@ -38,9 +38,7 @@ export default function UserManagement() {
 
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
-      await apiRequest(`/api/admin/users/${userId}`, {
-        method: "DELETE",
-      });
+      return await apiRequest(`/api/admin/users/${userId}`, "DELETE");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
@@ -60,7 +58,7 @@ export default function UserManagement() {
 
   const addUserMutation = useMutation({
     mutationFn: async (userData: { email: string; firstName: string; lastName: string }) => {
-      await apiRequest("/api/admin/users", {
+      return await apiRequest("/api/admin/users", {
         method: "POST",
         body: JSON.stringify(userData),
         headers: {

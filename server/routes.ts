@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertProductSchema, insertCategorySchema, insertOrderSchema, insertOrderItemSchema } from "@shared/schema";
 import { generateSitemap } from "./sitemap";
+import { sendWelcomeEmail, sendOrderDispatchEmail } from "./emailService";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -212,6 +213,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { status } = req.body;
       const order = await storage.updateOrderStatus(req.params.id, status);
+      
+      // Send dispatch email when order is shipped
+      if (status === 'shipped') {
+        try {
+          const orderWithUser = await storage.getOrderWithUser(req.params.id);
+          if (orderWithUser && orderWithUser.user?.email && orderWithUser.user?.firstName) {
+            await sendOrderDispatchEmail(
+              orderWithUser.user.email,
+              orderWithUser.user.firstName,
+              orderWithUser.id,
+              orderWithUser.shippingAddress
+            );
+          }
+        } catch (emailError) {
+          console.error('Failed to send dispatch email:', emailError);
+          // Don't fail the status update if email fails
+        }
+      }
+      
       res.json(order);
     } catch (error) {
       console.error("Error updating order status:", error);
@@ -286,6 +306,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lastName,
         role: 'user',
       });
+
+      // Send welcome email
+      try {
+        await sendWelcomeEmail(email, firstName);
+      } catch (emailError) {
+        console.error('Failed to send welcome email:', emailError);
+        // Don't fail the user creation if email fails
+      }
 
       res.json(newUser);
     } catch (error) {

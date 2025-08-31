@@ -6,7 +6,7 @@ let transporter: nodemailer.Transporter | null = null;
 
 export function initializeEmailService() {
   // Use Gmail SMTP - requires app password for security
-  transporter = nodemailer.createTransporter({
+  transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
       user: process.env.EMAIL_USER, // Your Gmail address

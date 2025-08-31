@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { ShoppingBag, Package, MapPin, Phone, Clock, DollarSign, CheckCircle, Truck } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest } from "@/lib/apiRequest";
 import { formatDistanceToNow } from "date-fns";
 
 interface OrderItem {
@@ -50,7 +50,7 @@ export default function OrderManagement() {
 
   const updateOrderStatusMutation = useMutation({
     mutationFn: async ({ orderId, status }: { orderId: string; status: string }) => {
-      await apiRequest(`/api/orders/${orderId}/status`, {
+      return await apiRequest(`/api/orders/${orderId}/status`, {
         method: "PUT",
         body: JSON.stringify({ status }),
         headers: {

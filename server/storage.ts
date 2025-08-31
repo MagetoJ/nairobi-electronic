@@ -58,6 +58,7 @@ export interface IStorage {
   // Admin operations
   getAllUsers(): Promise<User[]>;
   getOrdersWithDetails(): Promise<any[]>;
+  getOrderWithUser(id: string): Promise<any>;
   getStats(): Promise<{
     totalProducts: number;
     totalUsers: number;
@@ -300,6 +301,31 @@ export class DatabaseStorage implements IStorage {
     );
 
     return ordersWithItems;
+  }
+
+  async getOrderWithUser(id: string): Promise<any> {
+    const [orderWithUser] = await db
+      .select({
+        id: orders.id,
+        userId: orders.userId,
+        status: orders.status,
+        total: orders.total,
+        shippingAddress: orders.shippingAddress,
+        phone: orders.phone,
+        createdAt: orders.createdAt,
+        updatedAt: orders.updatedAt,
+        user: {
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+        },
+      })
+      .from(orders)
+      .leftJoin(users, eq(orders.userId, users.id))
+      .where(eq(orders.id, id));
+
+    return orderWithUser;
   }
 
   async getStats(): Promise<{
