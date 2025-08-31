@@ -19,13 +19,15 @@ export default function Header() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      window.location.href = `/products?search=${encodeURIComponent(searchQuery.trim())}`;
+      window.location.href = `/search?q=${encodeURIComponent(searchQuery.trim())}`;
     }
   };
 
   const navigation = [
     { name: "Home", href: "/" },
     { name: "Products", href: "/products" },
+    { name: "About", href: "/about" },
+    { name: "Contact", href: "/contact" },
   ];
 
   if (user?.role === 'admin') {
@@ -83,17 +85,24 @@ export default function Header() {
               {/* Auth Button */}
               {isAuthenticated ? (
                 <div className="flex items-center space-x-2">
-                  <span className="text-sm text-muted-foreground hidden md:inline">
-                    Welcome, {user?.firstName || user?.email}
-                  </span>
+                  <Link href="/profile">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      data-testid="button-profile"
+                    >
+                      <User className="w-4 h-4 mr-2" />
+                      <span className="hidden md:inline">Profile</span>
+                    </Button>
+                  </Link>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => window.location.href = "/api/logout"}
                     data-testid="button-logout"
+                    className="hidden md:flex"
                   >
-                    <User className="w-4 h-4 mr-2" />
-                    <span className="hidden md:inline">Logout</span>
+                    Logout
                   </Button>
                 </div>
               ) : (

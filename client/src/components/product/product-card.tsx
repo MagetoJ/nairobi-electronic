@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/hooks/useCart";
 import { useToast } from "@/hooks/use-toast";
 import { Star } from "lucide-react";
+import { Link } from "wouter";
 import type { Product } from "@shared/schema";
 
 interface ProductCardProps {
@@ -53,62 +54,74 @@ export default function ProductCard({ product }: ProductCardProps) {
   return (
     <Card className="hover:shadow-lg transition-shadow group" data-testid={`product-card-${product.id}`}>
       <CardContent className="p-6">
-        {product.images && product.images.length > 0 ? (
-          <img
-            src={product.images[0]}
-            alt={product.name}
-            className="w-full h-48 object-cover rounded-lg mb-4 group-hover:scale-105 transition-transform"
-            data-testid={`product-image-${product.id}`}
-          />
-        ) : (
-          <div className="w-full h-48 bg-muted rounded-lg mb-4 flex items-center justify-center">
-            <span className="text-muted-foreground">No Image</span>
-          </div>
-        )}
-        
-        <div className="space-y-2">
-          <h3 className="font-semibold text-lg" data-testid={`product-name-${product.id}`}>
-            {product.name}
-          </h3>
-          <p className="text-muted-foreground text-sm" data-testid={`product-description-${product.id}`}>
-            {product.description}
-          </p>
-          
-          {product.rating && (
-            <div className="flex items-center space-x-2" data-testid={`product-rating-${product.id}`}>
-              <div className="flex">
-                {renderStars(parseFloat(product.rating))}
-              </div>
-              <span className="text-sm text-muted-foreground">
-                {product.rating} ({product.reviewCount || 0} reviews)
-              </span>
+        <Link href={`/products/${product.id}`} className="block">
+          {product.images && product.images.length > 0 ? (
+            <img
+              src={product.images[0]}
+              alt={product.name}
+              className="w-full h-48 object-cover rounded-lg mb-4 group-hover:scale-105 transition-transform"
+              data-testid={`product-image-${product.id}`}
+            />
+          ) : (
+            <div className="w-full h-48 bg-muted rounded-lg mb-4 flex items-center justify-center">
+              <span className="text-muted-foreground">No Image</span>
             </div>
           )}
           
+          <div className="space-y-2">
+            <h3 className="font-semibold text-lg hover:text-primary transition-colors" data-testid={`product-name-${product.id}`}>
+              {product.name}
+            </h3>
+            <p className="text-muted-foreground text-sm" data-testid={`product-description-${product.id}`}>
+              {product.description}
+            </p>
+            
+            {product.rating && (
+              <div className="flex items-center space-x-2" data-testid={`product-rating-${product.id}`}>
+                <div className="flex">
+                  {renderStars(parseFloat(product.rating))}
+                </div>
+                <span className="text-sm text-muted-foreground">
+                  {product.rating} ({product.reviewCount || 0} reviews)
+                </span>
+              </div>
+            )}
+          </div>
+        </Link>
+        
+        <div className="space-y-2 mt-4">
           <div className="flex items-center justify-between">
             <span className="text-2xl font-bold text-primary" data-testid={`product-price-${product.id}`}>
               KSh {parseFloat(product.price).toLocaleString()}
             </span>
-            <div className="flex items-center space-x-2">
-              {product.stock && product.stock > 0 ? (
-                <>
-                  <Badge variant="secondary" data-testid={`product-stock-${product.id}`}>
-                    {product.stock} in stock
-                  </Badge>
-                  <Button 
-                    onClick={handleAddToCart}
-                    data-testid={`button-add-to-cart-${product.id}`}
-                  >
-                    Add to Cart
-                  </Button>
-                </>
-              ) : (
-                <Badge variant="destructive" data-testid={`product-out-of-stock-${product.id}`}>
-                  Out of Stock
-                </Badge>
-              )}
-            </div>
+            {product.stock && product.stock > 0 ? (
+              <Badge variant="secondary" data-testid={`product-stock-${product.id}`}>
+                {product.stock} in stock
+              </Badge>
+            ) : (
+              <Badge variant="destructive" data-testid={`product-out-of-stock-${product.id}`}>
+                Out of Stock
+              </Badge>
+            )}
           </div>
+          
+          {product.stock && product.stock > 0 ? (
+            <Button 
+              onClick={handleAddToCart}
+              className="w-full"
+              data-testid={`button-add-to-cart-${product.id}`}
+            >
+              Add to Cart
+            </Button>
+          ) : (
+            <Button 
+              disabled
+              className="w-full"
+              data-testid={`button-out-of-stock-${product.id}`}
+            >
+              Out of Stock
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

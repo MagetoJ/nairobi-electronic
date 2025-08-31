@@ -8,6 +8,15 @@ import { useAuth } from "@/hooks/useAuth";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
 import Products from "@/pages/products";
+import ProductDetail from "@/pages/product-detail";
+import About from "@/pages/about";
+import Contact from "@/pages/contact";
+import Profile from "@/pages/profile";
+import Orders from "@/pages/orders";
+import Search from "@/pages/search";
+import Privacy from "@/pages/privacy";
+import Terms from "@/pages/terms";
+import OrderSuccess from "@/pages/order-success";
 import Admin from "@/pages/admin";
 import NotFound from "@/pages/not-found";
 import { useEffect } from "react";
@@ -23,6 +32,15 @@ function Router() {
         <>
           <Route path="/" component={Home} />
           <Route path="/products" component={Products} />
+          <Route path="/products/:id" component={ProductDetail} />
+          <Route path="/search" component={Search} />
+          <Route path="/about" component={About} />
+          <Route path="/contact" component={Contact} />
+          <Route path="/profile" component={Profile} />
+          <Route path="/orders" component={Orders} />
+          <Route path="/privacy" component={Privacy} />
+          <Route path="/terms" component={Terms} />
+          <Route path="/order-success" component={OrderSuccess} />
           <Route path="/admin" component={Admin} />
         </>
       )}

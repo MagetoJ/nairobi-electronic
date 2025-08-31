@@ -38,6 +38,8 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
       clearCart();
       setIsCheckingOut(false);
       onClose();
+      // Redirect to order success page
+      window.location.href = "/order-success";
     },
     onError: (error) => {
       toast({
