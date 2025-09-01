@@ -57,7 +57,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
         description: "You need to sign in to place an order.",
         variant: "destructive",
       });
-      window.location.href = "/api/login";
+      window.location.href = "/";
       return;
     }
 

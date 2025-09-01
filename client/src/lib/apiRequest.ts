@@ -22,17 +22,22 @@ function mockApiRequest(url: string, options: RequestInit = {}): Promise<any> {
           reject(new Error('Not authenticated'));
         }
       } else if (url === '/api/auth/login' && options.method === 'POST') {
-        // Mock login
+        // Mock login - debug version
         const body = JSON.parse((options as any).body || '{}');
+        console.log('Mock login attempt:', body);
+        
         if (body.email && body.password) {
+          const isAdmin = body.email.toLowerCase() === 'jabezmageto78@gmail.com';
+          console.log('Is admin login:', isAdmin, 'Email:', body.email);
+          
           const user = {
             id: '1',
-            email: body.email,
+            email: body.email.toLowerCase(),
             firstName: body.email.split('@')[0],
             lastName: 'User',
             profileImageUrl: null,
             password: null, // never send password to client
-            role: body.email === 'jabezmageto78@gmail.com' ? 'admin' : 'user',
+            role: isAdmin ? 'admin' : 'user',
             phone: null,
             address: null,
             isEmailVerified: true,
@@ -40,6 +45,8 @@ function mockApiRequest(url: string, options: RequestInit = {}): Promise<any> {
             createdAt: new Date(),
             updatedAt: new Date()
           };
+          
+          console.log('Created user object:', user);
           localStorage.setItem('demo_user', JSON.stringify(user));
           resolve(user);
         } else {
@@ -101,6 +108,17 @@ function mockApiRequest(url: string, options: RequestInit = {}): Promise<any> {
           }
         ];
         resolve(products);
+      } else if (url === '/api/categories') {
+        // Mock categories data
+        const categories = [
+          { id: '1', name: 'Laptops' },
+          { id: '2', name: 'Smartphones' },
+          { id: '3', name: 'Desktops' },
+          { id: '4', name: 'Tablets' },
+          { id: '5', name: 'Audio' },
+          { id: '6', name: 'Gaming' }
+        ];
+        resolve(categories);
       } else if (url === '/api/admin/stats') {
         // Mock admin stats
         const stats = {

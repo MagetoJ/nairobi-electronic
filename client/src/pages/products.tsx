@@ -26,20 +26,7 @@ export default function Products() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      toast({
-        title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
-        variant: "destructive",
-      });
-      setTimeout(() => {
-        window.location.href = "/api/login";
-      }, 500);
-      return;
-    }
-  }, [isAuthenticated, isLoading, toast]);
+  // Products page should be accessible to everyone - no auth required
 
   const { data: categories } = useQuery({
     queryKey: ["/api/categories"],
@@ -47,43 +34,20 @@ export default function Products() {
 
   const { data: products, error: productsError, isLoading: productsLoading } = useQuery({
     queryKey: ["/api/products", { search: debouncedSearch, category }],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      if (debouncedSearch) params.append("search", debouncedSearch);
-      if (category && category !== "all") params.append("categoryId", category);
-      
-      const response = await fetch(`/api/products?${params}`);
-      if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);
-      return response.json();
-    },
   });
 
-  // Handle products error
+  // Handle products error - show user friendly message
   useEffect(() => {
-    if (productsError && isUnauthorizedError(productsError as Error)) {
+    if (productsError) {
       toast({
-        title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
+        title: "Error",
+        description: "Failed to load products. Please try refreshing the page.",
         variant: "destructive",
       });
-      setTimeout(() => {
-        window.location.href = "/api/login";
-      }, 500);
     }
   }, [productsError, toast]);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-primary rounded-lg flex items-center justify-center mx-auto mb-4">
-            <span className="text-primary-foreground font-bold text-xl">NE</span>
-          </div>
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
-  }
+  // Remove auth loading check since products don't require auth
 
   return (
     <div className="min-h-screen bg-background">

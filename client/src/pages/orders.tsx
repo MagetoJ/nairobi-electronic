@@ -74,7 +74,7 @@ export default function Orders() {
         <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
         <p className="text-muted-foreground mb-4">Please sign in to view your orders.</p>
         <Button asChild>
-          <a href="/api/login">Sign In</a>
+          <a href="/">Sign In</a>
         </Button>
       </div>
     );

@@ -40,7 +40,7 @@ export default function Landing() {
                 <Button 
                   size="lg" 
                   variant="secondary"
-                  onClick={() => window.location.href = "/api/login"}
+                  onClick={() => window.location.href = "/products"}
                   data-testid="button-shop-now"
                 >
                   Shop Now
@@ -107,7 +107,7 @@ export default function Landing() {
             <Button 
               variant="link" 
               className="text-primary"
-              onClick={() => window.location.href = "/api/login"}
+              onClick={() => window.location.href = "/products"}
               data-testid="link-view-all"
             >
               View All
@@ -133,7 +133,7 @@ export default function Landing() {
                   </p>
                   <Button 
                     variant="secondary"
-                    onClick={() => window.location.href = "/api/login"}
+                    onClick={() => window.location.href = "/products"}
                     data-testid="button-shop-sale"
                   >
                     Shop Sale
@@ -153,7 +153,7 @@ export default function Landing() {
                     Cash on delivery available for all orders in Nairobi
                   </p>
                   <Button 
-                    onClick={() => window.location.href = "/api/login"}
+                    onClick={() => window.location.href = "/products"}
                     data-testid="button-learn-more"
                   >
                     Learn More
