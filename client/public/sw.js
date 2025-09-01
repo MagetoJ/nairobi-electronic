@@ -1,9 +1,11 @@
-const CACHE_NAME = 'nairobi-electronics-v1';
+const CACHE_NAME = 'nairobi-electronics-v2';
 const urlsToCache = [
   '/',
   '/products',
+  '/about',
+  '/contact',
   '/manifest.json',
-  // Add static assets that should be cached
+  // Static assets will be cached dynamically
 ];
 
 // Install service worker
@@ -28,7 +30,8 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Skip API requests for now (they need fresh data)
-  if (event.request.url.includes('/api/')) {
+  // Note: API requests are now handled by mock system in static deployment
+  if (event.request.url.includes('/api/') && !event.request.url.includes('/api/products')) {
     return;
   }
 

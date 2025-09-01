@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,7 @@ import { useCart } from "@/hooks/useCart";
 import CartSidebar from "@/components/cart/cart-sidebar";
 import LoginForm from "@/components/auth/login-form";
 import RegisterForm from "@/components/auth/register-form";
-import { Search, ShoppingCart, User, Menu, X, UserPlus } from "lucide-react";
+import { Search, ShoppingCart, User, Menu, X, UserPlus, Download } from "lucide-react";
 
 export default function Header() {
   const [location] = useLocation();
@@ -19,6 +19,43 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+  const [showInstallButton, setShowInstallButton] = useState(false);
+
+  // Check if PWA can be installed
+  useEffect(() => {
+    const checkInstallability = () => {
+      // Check if it's already installed
+      if (window.matchMedia('(display-mode: standalone)').matches) {
+        setShowInstallButton(false);
+        return;
+      }
+      
+      // Check if install prompt is available
+      if ((window as any).deferredPrompt) {
+        setShowInstallButton(true);
+      }
+    };
+
+    checkInstallability();
+    
+    // Listen for install prompt event
+    const handleBeforeInstallPrompt = () => {
+      setShowInstallButton(true);
+    };
+    
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallPWA = () => {
+    if ((window as any).installPWA) {
+      (window as any).installPWA();
+      setShowInstallButton(false);
+    }
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,6 +175,21 @@ export default function Header() {
                     Register
                   </Button>
                 </div>
+              )}
+              
+              {/* PWA Install Button */}
+              {showInstallButton && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleInstallPWA}
+                  className="hidden md:flex"
+                  data-testid="button-install-pwa"
+                  title="Install App"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Install
+                </Button>
               )}
               
               {/* Cart Button */}

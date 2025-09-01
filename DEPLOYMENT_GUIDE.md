@@ -8,8 +8,9 @@ This guide provides step-by-step instructions for deploying the Nairobi Electron
 
 1. **Import Project**:
    - Visit [vercel.com](https://vercel.com)
-   - Click "New Project"
+   - Click "New Project"  
    - Import from GitHub: `https://github.com/MagetoJ/nairobi-electronic.git`
+   - The project is already deployed and should auto-update with new commits
 
 2. **Configure Build Settings**:
    - Framework Preset: **Other**
