@@ -13,7 +13,11 @@ function mockApiRequest(url: string, options: RequestInit = {}): Promise<any> {
         // Check if user is logged in
         const user = localStorage.getItem('demo_user');
         if (user) {
-          resolve(JSON.parse(user));
+          const parsedUser = JSON.parse(user);
+          // Convert date strings back to Date objects
+          if (parsedUser.createdAt) parsedUser.createdAt = new Date(parsedUser.createdAt);
+          if (parsedUser.updatedAt) parsedUser.updatedAt = new Date(parsedUser.updatedAt);
+          resolve(parsedUser);
         } else {
           reject(new Error('Not authenticated'));
         }
@@ -22,10 +26,19 @@ function mockApiRequest(url: string, options: RequestInit = {}): Promise<any> {
         const body = JSON.parse((options as any).body || '{}');
         if (body.email && body.password) {
           const user = {
-            id: 1,
+            id: '1',
             email: body.email,
-            name: body.email.split('@')[0],
-            role: body.email === 'jabezmageto78@gmail.com' ? 'admin' : 'user'
+            firstName: body.email.split('@')[0],
+            lastName: 'User',
+            profileImageUrl: null,
+            password: null, // never send password to client
+            role: body.email === 'jabezmageto78@gmail.com' ? 'admin' : 'user',
+            phone: null,
+            address: null,
+            isEmailVerified: true,
+            authProvider: 'local',
+            createdAt: new Date(),
+            updatedAt: new Date()
           };
           localStorage.setItem('demo_user', JSON.stringify(user));
           resolve(user);
@@ -35,17 +48,26 @@ function mockApiRequest(url: string, options: RequestInit = {}): Promise<any> {
       } else if (url === '/api/auth/register' && options.method === 'POST') {
         // Mock registration
         const body = JSON.parse((options as any).body || '{}');
-        if (body.email && body.password) {
+        if (body.email && body.password && body.firstName && body.lastName) {
           const user = {
-            id: Date.now(),
+            id: String(Date.now()),
             email: body.email,
-            name: body.name || body.email.split('@')[0],
-            role: 'user'
+            firstName: body.firstName,
+            lastName: body.lastName,
+            profileImageUrl: null,
+            password: null, // never send password to client
+            role: body.email === 'jabezmageto78@gmail.com' ? 'admin' : 'user',
+            phone: null,
+            address: null,
+            isEmailVerified: true,
+            authProvider: 'local',
+            createdAt: new Date(),
+            updatedAt: new Date()
           };
           localStorage.setItem('demo_user', JSON.stringify(user));
           resolve(user);
         } else {
-          reject(new Error('Registration failed'));
+          reject(new Error('Please fill in all required fields'));
         }
       } else if (url === '/api/auth/logout') {
         localStorage.removeItem('demo_user');
@@ -79,6 +101,22 @@ function mockApiRequest(url: string, options: RequestInit = {}): Promise<any> {
           }
         ];
         resolve(products);
+      } else if (url === '/api/admin/stats') {
+        // Mock admin stats
+        const stats = {
+          totalOrders: 156,
+          totalRevenue: 2450000,
+          totalProducts: 89,
+          totalUsers: 234,
+          recentOrders: [
+            { id: 1, customer: 'John Doe', total: 25000, status: 'pending' },
+            { id: 2, customer: 'Jane Smith', total: 15000, status: 'delivered' }
+          ]
+        };
+        resolve(stats);
+      } else if (url.startsWith('/api/admin/')) {
+        // Mock other admin endpoints
+        resolve({ success: true, message: 'Admin operation completed' });
       } else {
         reject(new Error('Endpoint not found'));
       }

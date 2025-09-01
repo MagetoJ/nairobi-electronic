@@ -8,6 +8,7 @@ import { useCart } from "@/hooks/useCart";
 import CartSidebar from "@/components/cart/cart-sidebar";
 import LoginForm from "@/components/auth/login-form";
 import RegisterForm from "@/components/auth/register-form";
+import { apiRequest } from "@/lib/apiRequest";
 import { Search, ShoppingCart, User, Menu, X, UserPlus, Download } from "lucide-react";
 
 export default function Header() {
@@ -25,28 +26,39 @@ export default function Header() {
   useEffect(() => {
     const checkInstallability = () => {
       // Check if it's already installed
-      if (window.matchMedia('(display-mode: standalone)').matches) {
+      if ((window as any).isPWAInstalled && (window as any).isPWAInstalled()) {
         setShowInstallButton(false);
         return;
       }
       
-      // Check if install prompt is available
-      if ((window as any).deferredPrompt) {
+      // For testing purposes, always show install button on mobile
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (isMobile) {
         setShowInstallButton(true);
       }
     };
 
     checkInstallability();
     
-    // Listen for install prompt event
-    const handleBeforeInstallPrompt = () => {
+    // Listen for PWA events
+    const handleInstallable = () => {
+      console.log('PWA is installable');
       setShowInstallButton(true);
     };
     
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    const handleInstalled = () => {
+      console.log('PWA was installed');
+      setShowInstallButton(false);
+    };
+    
+    window.addEventListener('pwa-installable', handleInstallable);
+    window.addEventListener('pwa-installed', handleInstalled);
+    window.addEventListener('appinstalled', handleInstalled);
     
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('pwa-installable', handleInstallable);
+      window.removeEventListener('pwa-installed', handleInstalled);
+      window.removeEventListener('appinstalled', handleInstalled);
     };
   }, []);
 
@@ -141,10 +153,12 @@ export default function Header() {
                     size="sm"
                     onClick={async () => {
                       try {
-                        await fetch('/api/auth/logout', { method: 'POST' });
+                        await apiRequest('/api/auth/logout', { method: 'POST' });
                         window.location.href = '/';
                       } catch (error) {
                         console.error('Logout error:', error);
+                        // Force logout even if API fails
+                        localStorage.removeItem('demo_user');
                         window.location.href = '/';
                       }
                     }}

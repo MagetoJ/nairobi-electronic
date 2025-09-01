@@ -74,8 +74,11 @@ export default function RegisterForm({ isOpen, onClose, onSwitchToLogin }: Regis
 
       toast({
         title: "Success",
-        description: "Account created successfully! Please sign in with your new account.",
+        description: "Account created successfully! You are now logged in.",
       });
+      
+      // Refresh user data
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       
       // Reset form
       setFirstName('');
@@ -84,13 +87,13 @@ export default function RegisterForm({ isOpen, onClose, onSwitchToLogin }: Regis
       setPassword('');
       setConfirmPassword('');
       
-      // Close registration modal and open login modal
+      // Close modal and redirect
       onClose();
-      if (onSwitchToLogin) {
-        setTimeout(() => {
-          onSwitchToLogin();
-        }, 500);
-      }
+      
+      // Small delay then redirect to homepage
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 500);
       
     } catch (error: any) {
       toast({
