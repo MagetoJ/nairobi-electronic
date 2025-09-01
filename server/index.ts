@@ -1,8 +1,35 @@
 import express, { type Request, Response, NextFunction } from "express";
+import cors from "cors";
+import helmet from "helmet";
+import compression from "compression";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
+
+// Security middleware
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+    },
+  },
+}));
+
+// CORS configuration
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? process.env.REPLIT_DOMAINS?.split(',').map(d => `https://${d}`) 
+    : true,
+  credentials: true,
+}));
+
+// Compression for better performance
+app.use(compression());
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 

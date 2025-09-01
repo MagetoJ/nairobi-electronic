@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import { useQuery } from "@tanstack/react-query";
+import type { Product } from "@shared/schema";
 import ProductGrid from "@/components/product/product-grid";
 import { Laptop, Smartphone, Gamepad2, Headphones, HardDrive, Monitor } from "lucide-react";
 
@@ -16,7 +17,7 @@ const categories = [
 ];
 
 export default function Landing() {
-  const { data: featuredProducts } = useQuery({
+  const { data: featuredProducts } = useQuery<Product[]>({
     queryKey: ["/api/products/featured"],
   });
 

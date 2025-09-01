@@ -40,11 +40,11 @@ export default function ProductManagement() {
     status: "active",
   });
 
-  const { data: products, isLoading: productsLoading } = useQuery({
+  const { data: products, isLoading: productsLoading } = useQuery<Product[]>({
     queryKey: ["/api/products"],
   });
 
-  const { data: categories } = useQuery({
+  const { data: categories } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
   });
 

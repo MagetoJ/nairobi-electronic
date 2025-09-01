@@ -1,0 +1,20 @@
+# ENVIRONMENT VARIABLES FOR PRODUCTION DEPLOYMENT
+# Copy these variable names and values to your hosting platform (Vercel/Netlify)
+
+DATABASE_URL=postgresql://username:password@host:5432/database_name
+SESSION_SECRET=generate_a_secure_32_character_random_string_here
+NODE_ENV=production
+REPLIT_DOMAINS=your-app.vercel.app
+REPL_ID=your_replit_project_id_here
+ISSUER_URL=https://replit.com/oidc
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASSWORD=your_gmail_app_password
+PORT=5000
+
+# INSTRUCTIONS:
+# 1. Replace all placeholder values with your actual credentials
+# 2. For DATABASE_URL: Create a PostgreSQL database on Neon, PlanetScale, or Supabase
+# 3. For SESSION_SECRET: Generate a random 32+ character string for security
+# 4. For REPLIT_DOMAINS: Use your actual production domain
+# 5. For EMAIL_PASSWORD: Use Gmail app password, not regular password
+# 6. Copy each NAME=VALUE pair to your hosting platform's environment variables section

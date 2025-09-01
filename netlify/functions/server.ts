@@ -1,29 +1,27 @@
 import { Handler } from '@netlify/functions';
+import serverless from 'serverless-http';
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import compression from 'compression';
+import { registerRoutes } from '../../server/routes';
+
+const app = express();
+
+// Security and performance middleware
+app.use(helmet());
+app.use(cors({ origin: true, credentials: true }));
+app.use(compression());
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
+// Register all routes
+registerRoutes(app);
+
+// Create serverless handler
+const serverlessApp = serverless(app);
 
 export const handler: Handler = async (event, context) => {
-  try {
-    // For Netlify, we'll need to set up a simpler handler
-    // This is a basic structure - full implementation would require
-    // serverless-http package and proper routing setup
-    
-    return {
-      statusCode: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      },
-      body: JSON.stringify({
-        message: 'Netlify function active - needs serverless-http setup for full Express app',
-        path: event.path,
-        method: event.httpMethod,
-      }),
-    };
-  } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: 'Function error' }),
-    };
-  }
+  const result = await serverlessApp(event, context);
+  return result as any;
 };
